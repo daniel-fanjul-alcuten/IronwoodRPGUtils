@@ -46,8 +46,8 @@
       container.appendChild(div);
     }
 
-    [["MB", 4], ["LF", 4], ["RE", 1]].forEach(([name, level]) => addPassive("firstPetInputs", name, level));
-    [["RE", 4], ["LF", 4], ["EF", 1]].forEach(([name, level]) => addPassive("secondPetInputs", name, level));
+    [["Melee Block", 4], ["Loot Find", 4], ["Ranged Evade", 1]].forEach(([name, level]) => addPassive("firstPetInputs", name, level));
+    [["Ranged Evade", 4], ["Loot Find", 4], ["Egg Find", 1]].forEach(([name, level]) => addPassive("secondPetInputs", name, level));
 
     function getPassives(containerId) {
       const container = document.getElementById(containerId);
