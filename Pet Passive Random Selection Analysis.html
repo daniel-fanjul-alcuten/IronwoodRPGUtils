@@ -29,6 +29,12 @@
     </form>
   </div>
 
+  <div class="section">
+    <h2>Selection Size</h2>
+    <label for="selectionSize">Enter selection size:</label>
+    <input type="number" id="selectionSize" min="1" value="3">
+  </div>
+
   <button onclick="analyze()">Analyze</button>
 
   <pre id="output"></pre>
@@ -76,7 +82,14 @@
       const firstPet = getPassives("firstPetInputs");
       const secondPet = getPassives("secondPetInputs");
       const passives = [...firstPet, ...secondPet];
-      const selectionSize = Math.min(firstPet.length, secondPet.length);
+
+      const selectionSizeInput = document.getElementById("selectionSize").value;
+      const selectionSize = parseInt(selectionSizeInput);
+
+      if (isNaN(selectionSize) || selectionSize < 1) {
+        alert("Please enter a valid selection size (minimum 1).");
+        return;
+      }
 
       const maxLevel = Math.max(...passives.map(p => p.level));
       const namesAtMaxLevel = new Set(
@@ -92,7 +105,7 @@
           selection.filter(p => p.level === maxLevel).map(p => p.name)
         );
 
-        const comboStr = selection.map(p => `${p.name}${p.level}`).join(", ");
+        const comboStr = selection.map(p => `${p.name}(${p.level})`).join(", ");
         const isGood = uniqueNamesAtMax.size === requiredMaxLevelCount;
 
         console.log(`Combination: [${comboStr}] → ${isGood ? "GOOD" : "BAD"}`);
