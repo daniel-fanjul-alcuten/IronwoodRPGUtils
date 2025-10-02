@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pet Passive Random Selection Analysis</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .section { margin-bottom: 20px; }
+    .passive-entry { margin-bottom: 5px; }
+    label { margin-right: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Pet Passive Random Selection Analysis</h1>
+
+  <div class="section">
+    <h2>First Pet Passives</h2>
+    <form id="firstPetForm">
+      <div id="firstPetInputs"></div>
+      <button type="button" onclick="addPassive('firstPetInputs')">Add Passive</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>Second Pet Passives</h2>
+    <form id="secondPetForm">
+      <div id="secondPetInputs"></div>
+      <button type="button" onclick="addPassive('secondPetInputs')">Add Passive</button>
+    </form>
+  </div>
+
+  <button onclick="analyze()">Analyze</button>
+
+  <pre id="output"></pre>
+
+  <script>
+    const passiveOptions = [
+      "Egg Find",
+      "Hunger",
+      "Loot Find",
+      "Magic Resist",
+      "Melee Block",
+      "Ranged Evade"
+    ];
+
+    const levelOptions = [1, 2, 3, 4];
+
+    function addPassive(containerId, name = "", level = 1) {
+      const container = document.getElementById(containerId);
+      const div = document.createElement("div");
+      div.className = "passive-entry";
+
+      const nameOptionsHTML = passiveOptions.map(opt =>
+        `<option value="${opt}" ${opt === name ? "selected" : ""}>${opt}</option>`
+      ).join("");
+
+      const levelOptionsHTML = levelOptions.map(opt =>
+        `<option value="${opt}" ${opt === level ? "selected" : ""}>${opt}</option>`
+      ).join("");
+
+      div.innerHTML = `
+        <label>Name:
+          <select class="name">${nameOptionsHTML}</select>
+        </label>
+        <label>Level:
+          <select class="level">${levelOptionsHTML}</select>
+        </label>
+        <button type="button" onclick="this.parentElement.remove()">Remove</button>
+      `;
+      container.appendChild(div);
+    }
+
+    [["Melee Block", 4], ["Loot Find", 4], ["Ranged Evade", 1]].forEach(([name, level]) => addPassive("firstPetInputs", name, level));
+    [["Ranged Evade", 4], ["Loot Find", 4], ["Egg Find", 1]].forEach(([name, level]) => addPassive("secondPetInputs", name, level));
+
+    function getPassives(containerId) {
+      const container = document.getElementById(containerId);
+      const names = Array.from(container.querySelectorAll(".name")).map(input => input.value.trim());
+      const levels = Array.from(container.querySelectorAll(".level")).map(input => parseInt(input.value));
+      return names.map((name, i) => ({ name, level: levels[i] }));
+    }
+
+    function generateCombinations(passives, size, combo = [], result = []) {
+      if (combo.length === size) {
+        result.push([...combo]);
+        return;
+      }
+      for (let i = 0; i < passives.length; i++) {
+        if (combo.some(p => p.name === passives[i].name)) continue;
+        combo.push(passives[i]);
+        generateCombinations(passives, size, combo, result);
+        combo.pop();
+      }
+      return result;
+    }
+
+    function analyze() {
+      console.log("Starting analysis...");
+
+      const firstPet = getPassives("firstPetInputs");
+      const secondPet = getPassives("secondPetInputs");
+      const passives = [...firstPet, ...secondPet];
+
+      const selectionSize = Math.max(firstPet.length, secondPet.length);
+
+      const maxLevel = Math.max(...passives.filter(p => p.name !== "Hunger").map(p => p.level));
+      const namesAtMaxLevel = new Set(
+        passives
+          .filter(p => p.level === maxLevel && p.name !== "Hunger")
+          .map(p => p.name)
+      );
+      const requiredMaxLevelCount = Math.min(selectionSize, namesAtMaxLevel.size);
+
+      const combinations = generateCombinations(passives, selectionSize);
+      let good = 0, bad = 0;
+
+      for (const selection of combinations) {
+
+        const uniqueNamesAtMax = new Set(
+          selection
+            .filter(p => p.level === maxLevel && p.name !== "Hunger")
+            .map(p => p.name)
+        );
+
+        const comboStr = selection.map(p => `${p.name}(${p.level})`).join(", ");
+        const isGood = uniqueNamesAtMax.size === requiredMaxLevelCount;
+
+        console.log(`Combination: [${comboStr}] → ${isGood ? "GOOD" : "BAD"}`);
+
+        if (isGood) {
+          good++;
+        } else {
+          bad++;
+        }
+      }
+
+      const total = good + bad;
+      const chance = total > 0 ? good / total : 0;
+
+      document.getElementById("output").textContent =
+        `Selection size: ${selectionSize}\nMax level: ${maxLevel}\nRequired max-level passives: ${requiredMaxLevelCount}\nGood: ${good}\nBad: ${bad}\nTotal: ${total}\nChance: ${chance.toFixed(4)}`;
+    }
+  </script>
+</body>
+</html>
